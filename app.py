@@ -7,7 +7,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-aai.settings.api_key = "14562a2b9b2743da8cacdbabb4d321ec"
+aai.settings.api_key = "ASSEMBLY_AI_KEY"
 
 CLIENT_FILE = 'credentials.json'
 DOCUMENT_ID = '1xIVwdVLi1mz5kauIbDVfCU3RifJBpDQK_3DxbLuB7FE'

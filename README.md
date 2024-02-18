@@ -2,7 +2,7 @@
 
 ## Overview
 
-This application leverages AssemblyAI's Speech-to-Text API and LLM's to implement real-time speech-to-text transcription directly into Google Docs or Notion, all using Python. Designed for efficiency and ease of use, it enables users to transcribe live audio into text, making it an invaluable tool for meetings, lectures, or any scenario where real-time note-taking is essential. Trying to remember what was said, chat with your full database of recordings using LeMUR from Assembly AI.
+This application leverages AssemblyAI's Speech-to-Text API and LLM's to implement real-time speech-to-text transcription directly into Google Docs or Notion, all using Python. Designed for efficiency and ease of use, it enables you to transcribe live audio into text and chat with your full database of recordings using semantic search and LeMUR from Assembly AI.
 
 ## Features
 
@@ -11,8 +11,6 @@ This application leverages AssemblyAI's Speech-to-Text API and LLM's to implemen
 - **Large Language Model Summarization**: Employs LLMs to generate concise bullet points from the live transcript, enhancing the readability and utility of the notes.
 - **Q&A with Historical Data**: Allows users to interact with their historical transcript data through a Q&A interface, leveraging AssemblyAI's LeMUR API for intelligent responses.
 - **Notion Integration**: Automatically updates a Notion page with summarized notes and action items, providing an organized way to manage meeting outcomes.
-- **Python-Based**: Fully implemented in Python, offering a flexible and developer-friendly approach to real-time transcription.
-
 
 ## Getting Started
 

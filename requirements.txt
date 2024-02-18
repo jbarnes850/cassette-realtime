@@ -5,3 +5,6 @@ google-api-python-client==2.33.0
 assemblyai==0.2.5
 requests==2.26.0
 notion-client==0.4.0
+numpy==1.26.4
+scikit-learn==1.4.1.post1
+sentence-transformers==2.3.1

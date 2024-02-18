@@ -1,58 +1,69 @@
 import json
-import assemblyai as aai
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+import assemblyai as aai
+from sentence_transformers import SentenceTransformer
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
 
 load_dotenv()
-
-aai.api_key = os.getenv("ASSEMBLYAI_API_KEY")
+aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
 
 def load_all_transcript_data():
     """
     Load and concatenate all stored transcript data from a JSON file.
     """
-    all_transcripts = ""
     with open("transcripts.json", "r") as file:
         data = json.load(file)
-        for item in data:
-            all_transcripts += item["full_transcript"] + " " 
-    return all_transcripts
+    sentences = []
+    for item in data:
+        sentences.extend(item["full_transcript"].split(". "))
+    return sentences
 
-def ask_questions():
+def semantic_search(user_input, sentences, sentence_embeddings):
     """
-    Continuously ask user-defined questions across all transcript data.
+    Perform semantic search on historical data based on user input.
     """
-    context = load_all_transcript_data()
-    if not context:
-        print("No transcript data found.")
-        return
+    embedder = SentenceTransformer("multi-qa-mpnet-base-dot-v1")
+    user_input_embedding = embedder.encode(user_input)
+
+    # Use k-nearest neighbors to find the most semantically similar sentences
+    knn = NearestNeighbors(n_neighbors=3, metric="cosine")
+    knn.fit(sentence_embeddings)
+    distances, indices = knn.kneighbors([user_input_embedding])
+
+    matches = [sentences[index] for index in indices[0]]
+    return matches
+
+def ask_lemur(question):
+    """
+    Use LeMUR to generate a response based on the question.
+    """
+    client = aai.Client(aai.settings.api_key)
+    response = client.lemur.generate(question=question)
+    return response['text']
+
+def chat_with_lemur_and_semantic_search():
+    sentences = load_all_transcript_data()
+    embedder = SentenceTransformer("multi-qa-mpnet-base-dot-v1")
+    sentence_embeddings = np.array([embedder.encode(sentence) for sentence in sentences])
 
     print("Chat with your audio data. Ask questions about any of your recordings. Type 'quit' to exit.")
-
-    client = aai.Client()  # Initialize the AssemblyAI client
-
     while True:
         user_input = input("You: ")
         if user_input.lower() == 'quit':
             print("Exiting chatbot. Goodbye!")
             break
 
-        # Prepare the question for the LeMUR API
-        questions = [{"question": user_input}]
+        # Use LeMUR to generate a response based on the user's question
+        lemur_response = ask_lemur(user_input)
+        print(f"LeMUR: {lemur_response}")
 
-        try:
-            # Directly use the LeMUR API for question-answering with the historical transcript data
-            result = client.lemur.question(
-                input_text=context,  # Use the concatenated transcripts as the context for the questions
-                questions=questions,
-            )
-
-            # Assuming 'result' contains the answers, adjust according to the actual response structure
-            for qa_response in result['answers']:
-                print(f"Bot: {qa_response['answer']}")
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            continue
+        # Perform semantic search to find relevant historical responses
+        matches = semantic_search(user_input, sentences, sentence_embeddings)
+        print("Semantic Search: Here are some relevant responses based on your question:")
+        for match in matches:
+            print(f"- {match}")
 
 if __name__ == "__main__":
-    ask_questions()
+    chat_with_lemur_and_semantic_search()

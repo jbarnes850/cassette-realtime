@@ -20,14 +20,39 @@ def load_all_transcript_data():
         sentences.extend(item["full_transcript"].split(". "))
     return sentences
 
-def semantic_search(user_input, sentences, sentence_embeddings):
+def precompute_embeddings():
     """
-    Perform semantic search on historical data based on user input.
+    Pre-compute and store sentence embeddings for all sentences in the historical data.
     """
+    print("Pre-computing embeddings for all sentences...")
+    sentences = load_all_transcript_data()
+    embedder = SentenceTransformer("multi-qa-mpnet-base-dot-v1")
+    sentence_embeddings = np.array([embedder.encode(sentence, show_progress_bar=True) for sentence in sentences])
+
+    # Store the embeddings and sentences in a file
+    with open("sentence_embeddings.json", "w") as f:
+        json.dump({
+            "sentences": sentences,
+            "embeddings": sentence_embeddings.tolist()  # Convert numpy array to list for JSON serialization
+        }, f)
+    print("Embeddings pre-computed and stored successfully.")
+
+def load_precomputed_embeddings():
+    """
+    Load pre-computed sentence embeddings and corresponding sentences from a file.
+    """
+    with open("sentence_embeddings.json", "r") as f:
+        data = json.load(f)
+    return data["sentences"], np.array(data["embeddings"])
+
+def semantic_search(user_input):
+    """
+    Perform semantic search on historical data based on user input using pre-computed embeddings.
+    """
+    sentences, sentence_embeddings = load_precomputed_embeddings()
     embedder = SentenceTransformer("multi-qa-mpnet-base-dot-v1")
     user_input_embedding = embedder.encode(user_input)
 
-    # Use k-nearest neighbors to find the most semantically similar sentences
     knn = NearestNeighbors(n_neighbors=3, metric="cosine")
     knn.fit(sentence_embeddings)
     distances, indices = knn.kneighbors([user_input_embedding])
@@ -44,10 +69,9 @@ def ask_lemur(question):
     return response['text']
 
 def chat_with_lemur_and_semantic_search():
-    sentences = load_all_transcript_data()
-    embedder = SentenceTransformer("multi-qa-mpnet-base-dot-v1")
-    sentence_embeddings = np.array([embedder.encode(sentence) for sentence in sentences])
-
+    """
+    Chat interface that uses LeMUR for generating responses and semantic search for finding relevant historical responses.
+    """
     print("Chat with your audio data. Ask questions about any of your recordings. Type 'quit' to exit.")
     while True:
         user_input = input("You: ")
@@ -55,15 +79,15 @@ def chat_with_lemur_and_semantic_search():
             print("Exiting chatbot. Goodbye!")
             break
 
-        # Use LeMUR to generate a response based on the user's question
         lemur_response = ask_lemur(user_input)
         print(f"LeMUR: {lemur_response}")
 
-        # Perform semantic search to find relevant historical responses
-        matches = semantic_search(user_input, sentences, sentence_embeddings)
+        matches = semantic_search(user_input)
         print("Semantic Search: Here are some relevant responses based on your question:")
         for match in matches:
             print(f"- {match}")
 
 if __name__ == "__main__":
+    # Uncomment the next line to precompute embeddings when needed
+    # precompute_embeddings()
     chat_with_lemur_and_semantic_search()

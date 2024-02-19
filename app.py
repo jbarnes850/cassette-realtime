@@ -79,8 +79,13 @@ def lemur_call(transcript, prev_responses):
 
     Avoid any preambles and also remove any text formatting.
 
-    As you sense the end of the conversation, summarize the transcript focusing on action items, recommendations, and next steps.
-    Ensure to highlight any deadlines, responsible persons, and specific tasks mentioned.
+    Instructions:
+    1. Identify and list key action items from the transcript.
+    2. Summarize the main points discussed in the meeting.
+    3. Highlight any deadlines mentioned and specify the responsible persons for each action item.
+    4. Avoid including irrelevant details or information not present in the transcript.
+    5. Provide the summary and action items in a structured and organized manner.
+
     """
     
     try:
@@ -90,7 +95,7 @@ def lemur_call(transcript, prev_responses):
             prompt=prompt,
             input_text=input_text,  
             final_model="default",
-            temperature=0.8,  
+            temperature=0.5,  
             max_output_size=3000
         )
         
@@ -177,14 +182,17 @@ class TranscriptAccumulator:
         }
         file_path = "transcripts.json"
         try:
-            with open(file_path, "r+") as file:
-                data = json.load(file)
-                data.append(structured_transcript)
-                file.seek(0)
-                json.dump(data, file, indent=4)
-        except FileNotFoundError:
-            with open(file_path, "w") as file:
-                json.dump([structured_transcript], file, indent=4)
+            with open(file_path, "r+") as file:  # Corrected indentation for the 'with' statement
+                try:
+                    data = json.load(file)  # Attempts to load existing data
+                except json.JSONDecodeError:  # Handles empty file scenario
+                    data = []  # Initialize as empty list if file is empty
+                data.append(structured_transcript)  # Appends new transcript
+                file.seek(0)  # Resets file position to the beginning
+                json.dump(data, file, indent=4)  # Writes updated data back to file
+        except FileNotFoundError:  # Handles file not found scenario
+            with open(file_path, "w") as file:  # Creates a new file if it doesn't exist
+                json.dump([structured_transcript], file, indent=4)  # Writes the structured transcript as a list
 
 transcript_accumulator = TranscriptAccumulator()  # Instantiates the TranscriptAccumulator class.
 

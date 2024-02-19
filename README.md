@@ -1,4 +1,4 @@
-# Cassette: A Real-Time Speech-to-Text Tool. Documents Notes in Google or Notion and Chat with Your Data using LLM's
+# Cassette: A Real-Time Speech-to-Text Tool. Document Notes in Google or Notion and Chat with Your Data using LLM's
 
 ## Overview
 
